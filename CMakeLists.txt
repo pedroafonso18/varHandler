@@ -3,4 +3,7 @@ project(varHandler)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(varHandler main.cpp)
+add_executable(varHandler src/main.cpp
+        include/database.h
+        src/Database.cpp
+)
