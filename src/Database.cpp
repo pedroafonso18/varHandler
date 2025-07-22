@@ -1,6 +1,6 @@
 #include "../include/Database.h"
 #include <iostream>
-
+#include <unordered_map>
 #include "../include/Logger.h"
 
 extern Logger apiLogger;
