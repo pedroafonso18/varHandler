@@ -1,4 +1,5 @@
 #pragma once
+#include <unordered_set>
 #include <pqxx/pqxx>
 
 class Database {
@@ -7,6 +8,6 @@ private:
     void connectDb(const std::string& db_url);
 public:
     explicit Database(const std::string& db_url);
-    void saveOperation(const std::string& var);
-    std::vector<std::string> fetchVars();
+    void saveOperation(const std::pair<std::string, std::string>& keyValue);
+    [[nodiscard]] std::unordered_map<std::string, std::string> fetchVars() const;
 };
