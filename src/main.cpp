@@ -8,6 +8,7 @@
 #include <GL/glew.h>
 #include "../lib/imgui/backends/imgui_impl_sdl2.h"
 #include "../lib/imgui/backends/imgui_impl_opengl3.h"
+#include "../lib/imgui/misc/cpp/imgui_stdlib.h"
 
 Logger apiLogger("../logs/api.log");
 
@@ -81,8 +82,24 @@ int main(int argc, char* argv[]) {
             ImGui::Text("%s: %s", var.first.c_str(), var.second.c_str());
         }
         ImGui::End();
+        ImGui::Begin("Insert New Var");
+        static std::string key;
+        static std::string value;
+
+        ImGui::InputText("New Var Key", &key);
+        ImGui::InputText("New Var Value", &value);
+
+        if (ImGui::Button("Send"))
+        {
+            printf("Key: %s | Value: %s\n", key.c_str(), value.c_str());
+
+            key.clear();
+            value.clear();
+        }
+
+        ImGui::End();
         ImGui::Render();
-        glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
+        glViewport(0, 0, static_cast<int>(io.DisplaySize.x), static_cast<int>(io.DisplaySize.y));
         glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
         ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
