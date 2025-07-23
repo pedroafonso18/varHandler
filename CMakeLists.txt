@@ -13,11 +13,19 @@ add_executable(varHandler
         include/Config.h
         src/Config.cpp
         lib/dotenv.h
+        lib/imgui/imgui.cpp
+        lib/imgui/imgui_draw.cpp
+        lib/imgui/imgui_tables.cpp
+        lib/imgui/imgui_widgets.cpp
+        lib/imgui/backends/imgui_impl_sdl2.cpp
+        lib/imgui/backends/imgui_impl_opengl3.cpp
 )
 
 set(OPENSSL_ROOT_DIR "C:/msys64/mingw64")
 
 target_include_directories(varHandler PRIVATE ${CMAKE_SOURCE_DIR}/lib/spdlog)
+target_include_directories(varHandler PRIVATE ${CMAKE_SOURCE_DIR}/lib/imgui)
+target_include_directories(varHandler PRIVATE "C:/msys64/mingw64/include/SDL2")
 
 target_include_directories(varHandler PRIVATE
     ${CMAKE_SOURCE_DIR}/include
@@ -26,4 +34,4 @@ target_include_directories(varHandler PRIVATE
 )
 
 link_directories("C:/msys64/mingw64/lib")
-target_link_libraries(varHandler PRIVATE pqxx)
+target_link_libraries(varHandler PRIVATE pqxx SDL2 SDL2main OpenGL32 glew32)
