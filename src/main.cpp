@@ -62,9 +62,10 @@ int main(int argc, char* argv[]) {
     const auto& env = cfg.getEnv();
 
     Database db(env.db_url);
-    auto vars = db.fetchVars();
 
     bool running = true;
+
+    static std::unordered_map<std::string, std::string> newValues;
 
     while (running) {
         SDL_Event event;
@@ -76,23 +77,38 @@ int main(int argc, char* argv[]) {
         ImGui_ImplOpenGL3_NewFrame();
         ImGui_ImplSDL2_NewFrame();
         ImGui::NewFrame();
+        auto vars = db.fetchVars();
+
 
         ImGui::Begin("Database Variables");
         for (const auto& var : vars) {
             ImGui::Text("%s: %s", var.first.c_str(), var.second.c_str());
+            if (ImGui::SmallButton((std::string("EDIT##") + var.first).c_str())) {
+                newValues[var.first] = var.second;
+            }
+            if (ImGui::SmallButton((std::string("DELETE##")+ var.first).c_str())) {
+                db.deleteOperation(var.first);
+            }
+            if (newValues.find(var.first) != newValues.end()) {
+                ImGui::InputText((std::string("New value##") + var.first).c_str(), &newValues[var.first]);
+                if (ImGui::SmallButton((std::string("SEND##") + var.first).c_str())) {
+                    db.updateOperation(std::make_pair(var.first, newValues[var.first]));
+                    newValues.erase(var.first);
+                }
+            }
         }
         ImGui::End();
         ImGui::Begin("Insert New Var");
         static std::string key;
         static std::string value;
 
-        ImGui::InputText("New Var Key", &key);
-        ImGui::InputText("New Var Value", &value);
+        ImGui::InputText("Key", &key);
+        ImGui::InputText("Value", &value);
 
         if (ImGui::Button("Send"))
         {
             printf("Key: %s | Value: %s\n", key.c_str(), value.c_str());
-
+            db.saveOperation(std::make_pair(key, value));
             key.clear();
             value.clear();
         }

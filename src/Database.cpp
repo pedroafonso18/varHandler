@@ -66,6 +66,40 @@ void Database::saveOperation(const std::pair<std::string, std::string>& keyValue
         apiLogger.info("Dado inserido com sucesso!");
     } catch (const std::exception& e) {
         apiLogger.error("Erro ao inserir dados: "+ std::string(e.what()));
-        return;
+    }
+}
+
+void Database::updateOperation(const std::pair<std::string, std::string>& keyValue) {
+    try {
+        if (!conn || !conn->is_open()) {
+            apiLogger.error("Conexão com banco de dados não está aberta");
+            return;
+        }
+        pqxx::work wrk(*conn);
+        pqxx::result res = wrk.exec(
+            "UPDATE vars SET value = " + wrk.quote(keyValue.second) + " WHERE key = " + wrk.quote(keyValue.first) + " RETURNING id");
+        wrk.commit();
+        if (res.empty()) {
+            apiLogger.error("Falha ao atualizar dados no banco de dados");
+        }
+        apiLogger.info("Dado atualizado com sucesso!");
+    } catch (const std::exception& e) {
+        apiLogger.error("Erro ao atualizar dados: "+ std::string(e.what()));
+    }
+}
+
+void Database::deleteOperation(const std::string &key) {
+    try {
+        if (!conn || !conn->is_open()) {
+            apiLogger.error("Conexão com o banco de dados não está aberta");
+            return;
+        }
+        pqxx::work wrk(*conn);
+        wrk.exec(
+            "DELETE FROM vars WHERE key = " + wrk.quote(key));
+        wrk.commit();
+        apiLogger.info("Dado apagado com sucesso!");
+    } catch (const std::exception&e) {
+        apiLogger.error("Erro ao apagar dado: " + std::string(e.what()));
     }
 }
