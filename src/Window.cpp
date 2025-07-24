@@ -2,9 +2,7 @@
 
 #include <iostream>
 
-Window::Window() : window(nullptr), gl_context(nullptr), io(nullptr) {
-
-}
+Window::Window() : window(nullptr), gl_context(nullptr), io(nullptr) {}
 
 Window::~Window() {
     ImGui_ImplOpenGL3_Shutdown();
