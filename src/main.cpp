@@ -10,101 +10,13 @@
 #include "../lib/imgui/misc/cpp/imgui_stdlib.h"
 #include <unordered_map>
 #include "../lib/crow_all.h"
+#include "../include/Api.h"
 #include <atomic>
 #include <sstream>
 #include <future>
 
 Logger apiLogger("../logs/api.log");
-std::atomic<bool> shouldExit(false);
 
-void runApiServer(Database& db) {
-    crow::SimpleApp app;
-
-    CROW_ROUTE(app, "/getVars")
-    .methods("GET"_method)
-    ([&db]() {
-        crow::json::wvalue result;
-        auto vars = db.fetchVars();
-        for (const auto& var : vars) {
-            result[var.first] = var.second;
-        }
-        return crow::response(result);
-    });
-
-    CROW_ROUTE(app, "/getVar/<string>")
-    .methods("GET"_method)
-    ([&db](const std::string& key) {
-        auto vars = db.fetchVars();
-        if (vars.find(key) != vars.end()) {
-            return crow::response(vars[key]);
-        } else {
-            return crow::response(404, "Variable not found");
-        }
-    });
-
-    CROW_ROUTE(app, "/setVar")
-    .methods("POST"_method)
-    ([&db](const crow::request& req) {
-        auto x = crow::json::load(req.body);
-        if (!x || !x.has("key") || !x.has("value"))
-            return crow::response(crow::status::BAD_REQUEST);
-
-        std::string key = x["key"].s();
-        std::string value = x["value"].s();
-
-        db.saveOperation(std::make_pair(key, value));
-        apiLogger.info("API: Set variable " + key + " to " + value);
-
-        return crow::response(crow::status::OK);
-    });
-
-    CROW_ROUTE(app, "/updateVar")
-    .methods("PUT"_method)
-    ([&db](const crow::request& req) {
-        auto x = crow::json::load(req.body);
-        if (!x || !x.has("key") || !x.has("value"))
-            return crow::response(crow::status::BAD_REQUEST);
-
-        std::string key = x["key"].s();
-        std::string value = x["value"].s();
-
-        db.updateOperation(std::make_pair(key, value));
-        apiLogger.info("API: Updated variable " + key + " to " + value);
-
-        return crow::response(crow::status::OK);
-    });
-
-    CROW_ROUTE(app, "/deleteVar/<string>")
-    .methods("DELETE"_method)
-    ([&db](const std::string& key) {
-        db.deleteOperation(key);
-        apiLogger.info("API: Deleted variable " + key);
-        return crow::response(crow::status::OK);
-    });
-
-    CROW_ROUTE(app, "/shutdown")
-    .methods("POST"_method)
-    ([&]() {
-        shouldExit.store(true);
-        return crow::response(crow::status::OK);
-    });
-
-    app.port(8080).multithreaded();
-
-    std::cout << "API server running on port 8080" << std::endl;
-    apiLogger.info("API server started on port 8080");
-
-    auto future = std::async(std::launch::async, [&] {
-        app.run();
-    });
-
-    while (!shouldExit.load()) {
-        std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-
-    app.stop();
-    apiLogger.info("API server shutting down");
-}
 
 int main(int argc, char* argv[]) {
     Window window;
@@ -116,8 +28,9 @@ int main(int argc, char* argv[]) {
     const auto& env = cfg.getEnv();
 
     Database db(env.db_url);
+    Api api;
 
-    std::thread apiThread(runApiServer, std::ref(db));
+    std::thread apiThread(&Api::runApiServer, &api, std::ref(db), env.apikey);
 
     bool running = true;
     static std::unordered_map<std::string, std::string> newValues;

@@ -23,6 +23,8 @@ add_executable(varHandler
         lib/crow_all.h
         include/Window.h
         src/Window.cpp
+        include/Api.h
+        src/Api.cpp
 )
 
 set(OPENSSL_ROOT_DIR "C:/msys64/mingw64")

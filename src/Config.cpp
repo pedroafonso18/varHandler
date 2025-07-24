@@ -18,6 +18,7 @@ Config::Config() {
 
 void Config::loadEnv() {
     env_vars.db_url = dotenv::getenv("DB_URL", "");
+    env_vars.apikey = dotenv::getenv("APIKEY", "ABCD1234");
 }
 
 const Env &Config::getEnv() const {
